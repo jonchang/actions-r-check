@@ -21,7 +21,7 @@ async function get_package_components() {
 }
 
 async function run() {
-  let pkg, version = get_package_components();
+  let pkg, version = await get_package_components();
 
   let install_deps = `
   install.packages("remotes")
