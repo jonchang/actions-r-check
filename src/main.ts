@@ -46,6 +46,8 @@ async function run() {
   }
 
   let tarball = `${pkg}_${version}.tar.gz`;
+  core.setOutput('tarball', tarball);
+  core.exportVariable('PKG_TARBALL', tarball);
 
   try {
     await exec.exec("R", ["CMD", "check", "--as-cran", tarball]);
