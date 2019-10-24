@@ -52,7 +52,7 @@ async function run() {
   core.exportVariable('PKG_TARBALL', tarball);
 
   try {
-    await exec.exec("R", ["CMD", "check", "--as-cran", tarball]);
+    await exec.exec("R", ["CMD", "check", "--as-cran", "--no-manual", tarball]);
   } catch (ee) {
     core.setFailed("R check failed: " + ee);
   }
