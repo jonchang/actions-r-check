@@ -1,0 +1,5 @@
+name: 'Run CRAN checks for R'
+description: 'Tests a package for R like CRAN'
+runs:
+  using: 'node12'
+  main: 'lib/main.js'

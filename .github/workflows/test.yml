@@ -1,0 +1,33 @@
+name: "Test setup-r"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - 'releases/*'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system:
+          - ubuntu-latest
+          - macOS-latest
+        r_ver:
+          - 3.6.0
+          - latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: "12.x"
+    - run: npm install
+    - run: npm run build
+    - uses: ./
+      name: Install R
+      with:
+        r_version: ${{ matrix.r_ver }}
+    - name: Test R
+      run: |
+        Rscript -e '1 + 1'

@@ -1,0 +1,34 @@
+{
+  "name": "r-cran-check",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Run R CRAN checks",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonchang/r-cran-check.git"
+  },
+  "keywords": [
+    "actions",
+    "r",
+    "setup"
+  ],
+  "author": "Jonathan Chang",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.0.0",
+    "@actions/tool-cache": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.13",
+    "@types/node": "^12.0.4",
+    "jest": "^24.8.0",
+    "jest-circus": "^24.7.1",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.1"
+  }
+}
