@@ -8,8 +8,8 @@ import * as path from "path";
 async function get_package_components() {
   let desc = fs.readFileSync("DESCRIPTION").toString();
   core.info(desc);
-  const re_version = /^Version:\s(\S+)/;
-  const re_package = /^Package:\s*(\S+)/;
+  const re_version = /^Version:\s(\S+)/m;
+  const re_package = /^Package:\s*(\S+)/m;
 
   let pkg_match = re_package.exec(desc);
   let ver_match = re_version.exec(desc);
