@@ -1,4 +1,4 @@
-name: "Test setup-r"
+name: "Test CRAN check"
 on:
   pull_request:
   push:
@@ -15,7 +15,6 @@ jobs:
           - ubuntu-latest
           - macOS-latest
         r_ver:
-          - 3.6.0
           - latest
     steps:
     - uses: actions/checkout@v1
@@ -24,8 +23,7 @@ jobs:
         node-version: "12.x"
     - run: npm install
     - run: npm run build
-    - uses: ./
-      name: Install R
+    - uses: jonchang/setup-r@master
       with:
         r_version: ${{ matrix.r_ver }}
     - name: Test R

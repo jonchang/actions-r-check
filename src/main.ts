@@ -1,93 +1,56 @@
+import fs from "fs";
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import * as io from "@actions/io";
 import * as tc from "@actions/tool-cache";
 import * as path from "path";
 
+async function get_package_components() {
+  let desc = fs.readFileSync("DESCRIPTION").toString();
+  const re_version = /^Version:\s(\S+)/;
+  const re_package = /^Package:\s*(\S+)/;
 
-async function install(version: string = "latest") {
-  if (process.platform == "darwin") {
-    install_mac(version);
-  } else if (process.platform == "linux") {
-    install_linux(version);
-  } else if (process.platform == "win32") {
-    core.setFailed("Windows not supported yet");
-    install_windows(version);
-  } else {
-    core.setFailed("Unsupported platform");
-  }
-}
+  let pkg_match = re_package.exec(desc);
+  let ver_match = re_version.exec(desc);
 
-async function install_windows(version: string) {
-  let fn = "R-" + version + "-win.exe";
-  let url = "https://cloud.r-project.org/bin/windows/base/" + fn;
-
-  let download: string = "";
-  try {
-    download = await tc.downloadTool(url);
-  } catch (ee) {
-    core.setFailed("Could not download R: " + ee);
+  if (pkg_match && ver_match) {
+    return [pkg_match[1], ver_match[1]];
   }
 
-  io.mv(download, fn);
-  // exec.exec something here? what are arguments?
-  core.setFailed("Windows not supported yet");
-}
-
-async function install_linux(version: string) {
-  let verstr = "";
-  if (version != "latest") {
-    verstr = "=" + version + "*";
-  }
-
-  try {
-    await exec.exec("sudo", ["bash", "-c", "source /etc/os-release; echo deb https://cloud.r-project.org/bin/linux/ubuntu ${UBUNTU_CODENAME}-cran35/ >> /etc/apt/sources.list.d/r.list"]);
-    await exec.exec("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9");
-    await exec.exec("sudo apt-get update");
-    await exec.exec("sudo", ["apt-get", "install", "-y", "r-base-dev" + verstr]);
-  } catch (ee) {
-    core.setFailed("Could not install R: " + ee);
-  }
-}
-
-
-async function install_mac(version: string) {
-  let fn = "R-" + version + ".pkg";
-  let url = "https://cloud.r-project.org/bin/macosx/" + fn;
-
-  let download: string = "";
-  try {
-    download = await tc.downloadTool(url);
-  } catch (ee) {
-    core.setFailed("Could not download R: " + ee);
-  }
-
-  io.mv(download, fn);
-
-  try {
-    await exec.exec("sudo", [
-      "/usr/sbin/installer",
-      "-pkg",
-      fn,
-      "-target",
-      "/"
-    ]);
-  } catch (ee) {
-    core.setFailed("Could not install R: " + ee);
-  }
-
-  io.rmRF(fn);
-
-  await tc.cacheDir("/Library/Frameworks/R.framework", "R", version);
-  core.addPath("/usr/local/bin");
+  core.setFailed("Could not parse DESCRIPTION");
 }
 
 async function run() {
+  let pkg, version = get_package_components();
+
+  let install_deps = `
+  install.packages("remotes")
+  deps <- remotes::dev_package_deps(dependencies = NA);
+  remotes::install_deps(dependencies = TRUE);
+  if (!all(deps$package %in% installed.packages())) {
+    message("missing: ", paste(setdiff(deps$package, installed.packages()), collapse=", "));
+    q(status = 1, save = "no")
+  }
+  `;
+
   try {
-    let version = core.getInput("r_version");
-    await install(version);
-  } catch (error) {
-    core.setFailed(error.message);
+    await exec.exec("Rscript", ["-e", install_deps]);
+  } catch (ee) {
+    core.setFailed("Could not install dependencies: " + ee);
+  }
+
+  try {
+    await exec.exec("R", ["CMD", "build", "."]);
+  } catch (ee) {
+    core.setFailed("Could not build package: " + ee);
+  }
+
+  let tarball = `${pkg}_${version}.tar.gz`;
+
+  try {
+    await exec.exec("R", ["CMD", "check", "--as-cran", tarball]);
+  } catch (ee) {
+    core.setFailed("R check failed: " + ee);
   }
 }
 
