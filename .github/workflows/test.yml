@@ -14,18 +14,14 @@ jobs:
         operating-system:
           - ubuntu-latest
           - macOS-latest
-        r_ver:
-          - latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
       with:
         node-version: "12.x"
     - run: npm install
     - run: npm run build
-    - uses: jonchang/setup-r@master
-      with:
-        r_version: ${{ matrix.r_ver }}
+    - uses: r-lib/actions/setup-r@v1
     - name: Test R
       run: |
         Rscript -e '1 + 1'
