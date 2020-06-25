@@ -24,7 +24,7 @@
     "@actions/tool-cache": "^1.5.5"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.0",
+    "@types/jest": "^26.0.3",
     "@types/node": "^14.0.13",
     "jest": "^24.9.0",
     "jest-circus": "^26.1.0",
